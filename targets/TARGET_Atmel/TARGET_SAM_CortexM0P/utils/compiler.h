@@ -632,77 +632,6 @@ typedef struct {
 
 /** @} */
 
-
-/** \name Mathematics
- *
- * The same considerations as for clz and ctz apply here but GCC does not
- * provide built-in functions to access the assembly instructions abs, min and
- * max and it does not produce them by itself in most cases, so two sets of
- * macros are defined here:
- *   - Abs, Min and Max to apply to constant expressions (values known at
- *     compile time);
- *   - abs, min and max to apply to non-constant expressions (values unknown at
- *     compile time), abs is found in stdlib.h.
- *
- * @{ */
-
-/** \brief Takes the absolute value of \a a.
- *
- * \param[in] a Input value.
- *
- * \return Absolute value of \a a.
- *
- * \note More optimized if only used with values known at compile time.
- */
-#define Abs(a)              (((a) <  0 ) ? -(a) : (a))
-
-/** \brief Takes the minimal value of \a a and \a b.
- *
- * \param[in] a Input value.
- * \param[in] b Input value.
- *
- * \return Minimal value of \a a and \a b.
- *
- * \note More optimized if only used with values known at compile time.
- */
-#define Min(a, b)           (((a) < (b)) ?  (a) : (b))
-
-/** \brief Takes the maximal value of \a a and \a b.
- *
- * \param[in] a Input value.
- * \param[in] b Input value.
- *
- * \return Maximal value of \a a and \a b.
- *
- * \note More optimized if only used with values known at compile time.
- */
-#define Max(a, b)           (((a) > (b)) ?  (a) : (b))
-
-/** \brief Takes the minimal value of \a a and \a b.
- *
- * \param[in] a Input value.
- * \param[in] b Input value.
- *
- * \return Minimal value of \a a and \a b.
- *
- * \note More optimized if only used with values unknown at compile time.
- */
-#define min(a, b)   Min(a, b)
-
-/** \brief Takes the maximal value of \a a and \a b.
- *
- * \param[in] a Input value.
- * \param[in] b Input value.
- *
- * \return Maximal value of \a a and \a b.
- *
- * \note More optimized if only used with values unknown at compile time.
- */
-#define max(a, b)   Max(a, b)
-
-/** @} */
-
-
 /** \brief Calls the routine at address \a addr.
  *
  * It generates a long call opcode.
@@ -917,6 +846,7 @@ typedef uint64_t                U64;  //!< 64-bit unsigned integer.
 typedef float                   F32;  //!< 32-bit floating-point number.
 typedef double                  F64;  //!< 64-bit floating-point number.
 
+#if 0
 #define  MSB(u16)       (((U8  *)&(u16))[1]) //!< Most significant byte of \a u16.
 #define  LSB(u16)       (((U8  *)&(u16))[0]) //!< Least significant byte of \a u16.
 
@@ -966,6 +896,7 @@ typedef double                  F64;  //!< 64-bit floating-point number.
 #define MSB2(u32)           MSB2W(u32)  //!< Most significant byte of 3rd rank of \a u32.
 #define MSB1(u32)           MSB1W(u32)  //!< Most significant byte of 2nd rank of \a u32.
 #define MSB0(u32)           MSB0W(u32)  //!< Most significant byte of 1st rank of \a u32.
+#endif
 
 #if defined(__ICCARM__)
 #define SHORTENUM           __packed

@@ -17,7 +17,7 @@
 #include "us_ticker_api.h"
 #include "cmsis.h"
 #include "mbed_assert.h"
-#include "ins_gclk.h"
+#include "gclk.h"
 #include "compiler.h"
 #include "system.h"
 #include "tc.h"
@@ -33,6 +33,7 @@
 #define TICKER_COUNTER_Handlr	TC0_Handler
 #endif
 
+static float us_ticker_prescaler_correction = 1.0f;
 static int us_ticker_inited = 0;
 extern uint8_t g_sys_init;
 
@@ -72,6 +73,7 @@ void us_ticker_init(void)
     uint32_t			cycles_per_us;
     uint32_t			prescaler = 0;
     struct tc_config	config_tc;
+    uint16_t            prescaler_value;
 
     if (us_ticker_inited) return;
     us_ticker_inited = 1;
@@ -85,10 +87,7 @@ void us_ticker_init(void)
 
     cycles_per_us = system_gclk_gen_get_hz(config_tc.clock_source) / 1000000;
     MBED_ASSERT(cycles_per_us > 0);
-    /*while((cycles_per_us & 1) == 0 && prescaler <= 10) {
-    	cycles_per_us = cycles_per_us >> 1;
-    	prescaler++;
-    }*/
+
     while((cycles_per_us > 1) && (prescaler <= 10)) {
         cycles_per_us = cycles_per_us >> 1;
         prescaler++;
@@ -100,6 +99,21 @@ void us_ticker_init(void)
     } else if (prescaler >= 5) {
         prescaler = 5;
     }
+
+    // on SAML21J18A the clock frequency is 48MHz, but there is no prescaler value that matches this
+    // so we need to correct... This matches tc.h
+    switch (prescaler) {
+        case 0: prescaler_value = 1; break;
+        case 1: prescaler_value = 2; break;
+        case 2: prescaler_value = 4; break;
+        case 3: prescaler_value = 8; break;
+        case 4: prescaler_value = 16; break;
+        case 5: prescaler_value = 64; break;
+        case 6: prescaler_value = 256; break;
+        case 7: prescaler_value = 1024; break;
+    }
+
+    us_ticker_prescaler_correction = ((float)system_gclk_gen_get_hz(config_tc.clock_source) / 1000000) / (float)prescaler_value;
 
     config_tc.clock_prescaler = (enum tc_clock_prescaler)TC_CTRLA_PRESCALER(prescaler);
     config_tc.counter_size = TC_COUNTER_SIZE_32BIT;
@@ -115,6 +129,11 @@ void us_ticker_init(void)
 
     /* Enable the timer module */
     tc_enable(&us_ticker_module);
+
+    /* Enable the timer interrupt */
+    tc_disable_callback(&us_ticker_module, TC_CALLBACK_CC_CHANNEL0);
+    NVIC_SetVector(TICKER_COUNTER_IRQn, (uint32_t)TICKER_COUNTER_Handlr);
+    NVIC_EnableIRQ(TICKER_COUNTER_IRQn);
 }
 
 uint32_t us_ticker_read()
@@ -122,37 +141,47 @@ uint32_t us_ticker_read()
     if (!us_ticker_inited)
         us_ticker_init();
 
-    return tc_get_count_value(&us_ticker_module);
+    uint32_t tc_value = tc_get_count_value(&us_ticker_module);
+    if (us_ticker_prescaler_correction != 1.0f) {
+        tc_value = (uint32_t)((float)tc_value / us_ticker_prescaler_correction);
+    }
+    return tc_value;
 }
 
 void us_ticker_set_interrupt(timestamp_t timestamp)
 {
-    uint32_t cur_time;
-    int32_t delta;
-
-    cur_time = us_ticker_read();
-    delta = (int32_t)((uint32_t)timestamp - cur_time);
-    if (delta < 0) {
-        /* Event already occurred in past */
-        us_ticker_irq_handler();
-        return;
+    uint32_t tc_timestamp = (uint32_t)timestamp;
+    if (us_ticker_prescaler_correction != 1.0f) {
+        tc_timestamp = (uint32_t)((float)tc_timestamp * us_ticker_prescaler_correction);
     }
-
-    NVIC_DisableIRQ(TICKER_COUNTER_IRQn);
-    NVIC_SetVector(TICKER_COUNTER_IRQn, (uint32_t)TICKER_COUNTER_Handlr);
 
     /* Enable the callback */
     tc_enable_callback(&us_ticker_module, TC_CALLBACK_CC_CHANNEL0);
-    tc_set_compare_value(&us_ticker_module, TC_COMPARE_CAPTURE_CHANNEL_0, (uint32_t)timestamp);
-
-    NVIC_EnableIRQ(TICKER_COUNTER_IRQn);
+    tc_set_compare_value(&us_ticker_module, TC_COMPARE_CAPTURE_CHANNEL_0, tc_timestamp);
 }
 
 void us_ticker_disable_interrupt(void)
 {
     /* Disable the callback */
     tc_disable_callback(&us_ticker_module, TC_CALLBACK_CC_CHANNEL0);
-    NVIC_DisableIRQ(TICKER_COUNTER_IRQn);
+}
+
+void us_ticker_fire_interrupt(void)
+{
+    /**
+     * We should be able to trigger this by just calling:
+     *
+     * NVIC_SetPendingIRQ(TICKER_COUNTER_IRQn);
+     *
+     * However, tc_interrupt.c -> _tc_interrupt_handler then gets the wrong value from reg.
+     * It should be 48 (when called via the normal API), but is 32. I've tried setting
+     * this register before triggering the interrupt, and this fails in the same way.
+     * I have no clue how to fix this properly... If someone comes along who understands
+     * Atmel IRQ handling better I'd love to get a better patch
+     */
+
+    // this gives us a minimum tick of 400 us.
+    us_ticker_set_interrupt(us_ticker_read() + 400);
 }
 
 void us_ticker_clear_interrupt(void)
@@ -170,5 +199,8 @@ void us_ticker_clear_interrupt(void)
 
 void us_ticker_free(void)
 {
+    tc_clear_interrupt(&us_ticker_module, TC_CALLBACK_CC_CHANNEL0);
+    NVIC_DisableIRQ(TICKER_COUNTER_IRQn);
 
+    us_ticker_inited = 0;
 }
