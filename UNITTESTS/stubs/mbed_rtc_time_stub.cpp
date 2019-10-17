@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Arm Limited and affiliates.
+ * Copyright (c) , Arm Limited and affiliates.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -14,30 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include "hal/rtc_api.h"
 
-#ifndef MBED_OBJECTS_H
-#define MBED_OBJECTS_H
+#include "platform/mbed_critical.h"
+#include "platform/mbed_rtc_time.h"
+#include "platform/SingletonPtr.h"
+#include "platform/PlatformMutex.h"
 
-#include <inttypes.h>
-#include "PeripheralNames.h"
-#include "PinNames.h"
+
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+#if defined (__ICCARM__)
+time_t __time32(time_t *timer)
+#else
+time_t time(time_t *timer)
+#endif
 
-struct gpio_irq_s {
-    uint32_t ch;
-};
+{
+    return 0;
+}
 
-struct serial_s {
-    int x;
-};
+void set_time(time_t t)
+{
+}
 
-#include "gpio_object.h"
+void attach_rtc(time_t (*read_rtc)(void), void (*write_rtc)(time_t), void (*init_rtc)(void), int (*isenabled_rtc)(void))
+{
+}
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

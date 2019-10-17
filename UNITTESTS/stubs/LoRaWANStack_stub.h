@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017, Arm Limited and affiliates.
+ * Copyright (c) , Arm Limited and affiliates.
  * SPDX-License-Identifier: Apache-2.0
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -15,29 +15,6 @@
  * limitations under the License.
  */
 
-#ifndef MBED_OBJECTS_H
-#define MBED_OBJECTS_H
-
-#include <inttypes.h>
-#include "PeripheralNames.h"
-#include "PinNames.h"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-struct gpio_irq_s {
-    uint32_t ch;
-};
-
-struct serial_s {
-    int x;
-};
-
-#include "gpio_object.h"
-
-#ifdef __cplusplus
+namespace LoRaWANStack_stub {
+extern lorawan_gps_time_t gps_time_value;
 }
-#endif
-
-#endif
