@@ -516,6 +516,16 @@ public:
     lorawan_status_t get_last_rx_beacon(loramac_beacon_t &beacon);
 
     /**
+     * Get session parameteres 
+     */
+    lorawan_status_t get_session(loramac_protocol_params *params);
+    
+    /**
+     * Set session parameteres 
+     */
+    lorawan_status_t set_session(loramac_protocol_params *params);
+
+    /**
      * These locks trample through to the upper layers and make
      * the stack thread safe.
      */

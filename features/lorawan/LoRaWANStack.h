@@ -472,6 +472,22 @@ public:
      */
     lorawan_status_t get_last_rx_beacon(loramac_beacon_t &beacon);
 
+    /**
+     * @brief Get the current active session parameers
+     * 
+     * @param params
+     * @return LORAWAN_STATUS_OK with session parameteres retrival. 
+     */
+    lorawan_status_t get_session(loramac_protocol_params *params);
+
+    /**
+     * @brief Set he current active session parameers
+     * 
+     * @param params 
+     * @return LORAWAN_STATUS_OK with session parameteres set. 
+     */
+    lorawan_status_t set_session(loramac_protocol_params *params);
+
     /** Lock resource
      *
      * Provides mutual exclusion.

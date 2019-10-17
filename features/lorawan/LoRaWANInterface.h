@@ -599,6 +599,21 @@ public:
      */
     lorawan_status_t cancel_sending(void);
 
+    /** Get the current session
+     *
+     * Retrieves the complete MAC session, including keys, frame counters, RX configuration
+     *
+     * @param loramac_protocol_params A pointer to a protocol parameters structure
+     * @return LORAWAN_STATUS_OK
+     */
+    lorawan_status_t get_session(loramac_protocol_params *params);
+
+    /** Set the current session
+     *
+     * Sets the complete MAC session, including keys, frame counters and RX configuration
+     */
+    lorawan_status_t set_session(loramac_protocol_params *params);
+
     /** Get network provided GPS time
      *
      * Network provides a time-stamp for the device synchronization on demand

@@ -266,3 +266,12 @@ lorawan_status_t LoRaWANInterface::get_last_rx_beacon(loramac_beacon_t &beacon)
 
 }
 
+lorawan_status_t LoRaWANInterface::get_session(loramac_protocol_params *params)
+{
+    return _lw_stack.get_session(params);
+}
+
+lorawan_status_t LoRaWANInterface::set_session(loramac_protocol_params *params)
+{
+    return _lw_stack.set_session(params);
+}

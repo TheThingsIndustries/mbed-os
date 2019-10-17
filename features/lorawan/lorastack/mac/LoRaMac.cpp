@@ -2539,3 +2539,17 @@ lorawan_status_t LoRaMac::get_last_rx_beacon(loramac_beacon_t &beacon)
 {
     return LoRaMacClassBInterface::get_last_rx_beacon(beacon);
 }
+
+lorawan_status_t LoRaMac::get_session(loramac_protocol_params *params)
+{
+     //TODO: check that everything is seriailzable (mulicast linked list is not and this is known)
+    memcpy(params, &_params, sizeof(loramac_protocol_params));
+    return LORAWAN_STATUS_OK;
+}
+
+lorawan_status_t LoRaMac::set_session(loramac_protocol_params *params)
+{
+    //TODO: check that everything is seriailzable (mulicast linked list is not and this is known)
+    memcpy(&_params, params, sizeof(loramac_protocol_params));
+    return LORAWAN_STATUS_OK;
+}
