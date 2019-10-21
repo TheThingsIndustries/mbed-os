@@ -116,45 +116,59 @@ int LoRaMacCrypto::compute_mic(const uint8_t *buffer, uint16_t size,
 
     mic_block_b0[15] = size & 0xFF;
 
-    mbedtls_cipher_init(aes_cmac_ctx);
+    mbedtls_cipher_init(&aes_cmac_ctx);
 
-    const mbedtls_cipher_info_t *cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB);
+    mbedtls_cipher_info_t *cipher_info = NULL;
 
-    if (NULL != cipher_info) {
-        ret = mbedtls_cipher_setup(aes_cmac_ctx, cipher_info);
-        if (0 != ret) {
-            goto exit;
-        }
+#if !defined(MBEDTLS_CMAC_ALT)
+    cipher_info = (mbedtls_cipher_info_t *)mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB);
 
-        ret = mbedtls_cipher_cmac_starts(aes_cmac_ctx, key, APPKEY_KEY_LENGTH);
-        if (0 != ret) {
-            goto exit;
-        }
-
-        ret = mbedtls_cipher_cmac_update(aes_cmac_ctx, mic_block_b0, sizeof(mic_block_b0));
-        if (0 != ret) {
-            goto exit;
-        }
-
-        ret = mbedtls_cipher_cmac_update(aes_cmac_ctx, buffer, size & 0xFF);
-        if (0 != ret) {
-            goto exit;
-        }
-
-        ret = mbedtls_cipher_cmac_finish(aes_cmac_ctx, computed_mic);
-        if (0 != ret) {
-            goto exit;
-        }
-
-        *mic = (uint32_t)((uint32_t) computed_mic[3] << 24
-                          | (uint32_t) computed_mic[2] << 16
-                          | (uint32_t) computed_mic[1] << 8 | (uint32_t) computed_mic[0]);
-    } else {
+    if (cipher_info == NULL) {
         ret = MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
+        return ret;
     }
 
+    ret = mbedtls_cipher_setup(&aes_cmac_ctx, cipher_info);
+    if (0 != ret) {
+        goto exit;
+    }
+#else
+    mbedtls_cmac_context_t alt_cmac_ctx;
+    aes_cmac_ctx.cmac_ctx = &alt_cmac_ctx;
+#endif
+
+
+    ret = mbedtls_cipher_cmac_starts(&aes_cmac_ctx, key, APPKEY_KEY_LENGTH);
+    if (0 != ret) {
+        goto exit;
+    }
+
+    ret = mbedtls_cipher_cmac_update(&aes_cmac_ctx, mic_block_b0,
+                                     sizeof(mic_block_b0));
+    if (0 != ret) {
+        goto exit;
+    }
+
+    ret = mbedtls_cipher_cmac_update(&aes_cmac_ctx, buffer, size & 0xFF);
+    if (0 != ret) {
+        goto exit;
+    }
+
+    ret = mbedtls_cipher_cmac_finish(&aes_cmac_ctx, computed_mic);
+    if (0 != ret) {
+        goto exit;
+    }
+
+    *mic = (uint32_t)(
+            (uint32_t) computed_mic[3] << 24 | (uint32_t) computed_mic[2] << 16
+                    | (uint32_t) computed_mic[1] << 8
+                    | (uint32_t) computed_mic[0]);
+
 exit:
-    mbedtls_cipher_free(aes_cmac_ctx);
+    if (cipher_info) {
+        mbedtls_cipher_free(&aes_cmac_ctx);
+    }
+
     return ret;
 }
 
@@ -273,39 +287,51 @@ int LoRaMacCrypto::compute_join_frame_mic(const uint8_t *buffer, uint16_t size,
         key = _keys.snwk_sintkey;
     }
 
-    mbedtls_cipher_init(aes_cmac_ctx);
-    const mbedtls_cipher_info_t *cipher_info = mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB);
+    mbedtls_cipher_init(&aes_cmac_ctx);
+    mbedtls_cipher_info_t *cipher_info = NULL;
 
-    if (NULL != cipher_info) {
-        ret = mbedtls_cipher_setup(aes_cmac_ctx, cipher_info);
-        if (0 != ret) {
-            goto exit;
-        }
+#if !defined(MBEDTLS_CMAC_ALT)
+    cipher_info = (mbedtls_cipher_info_t *) mbedtls_cipher_info_from_type(MBEDTLS_CIPHER_AES_128_ECB);
 
-        ret = mbedtls_cipher_cmac_starts(aes_cmac_ctx, key, APPKEY_KEY_LENGTH);
-        if (0 != ret) {
-            goto exit;
-        }
-
-        ret = mbedtls_cipher_cmac_update(aes_cmac_ctx, buffer, size & 0xFF);
-        if (0 != ret) {
-            goto exit;
-        }
-
-        ret = mbedtls_cipher_cmac_finish(aes_cmac_ctx, computed_mic);
-        if (0 != ret) {
-            goto exit;
-        }
-
-        *mic = (uint32_t)((uint32_t) computed_mic[3] << 24
-                          | (uint32_t) computed_mic[2] << 16
-                          | (uint32_t) computed_mic[1] << 8 | (uint32_t) computed_mic[0]);
-    } else {
+    if (cipher_info == NULL) {
         ret = MBEDTLS_ERR_CIPHER_ALLOC_FAILED;
+        return ret;
     }
 
+    ret = mbedtls_cipher_setup(&aes_cmac_ctx, cipher_info);
+    if (0 != ret) {
+        goto exit;
+    }
+#else
+    mbedtls_cmac_context_t alt_cmac_ctx;
+    aes_cmac_ctx.cmac_ctx = &alt_cmac_ctx;
+#endif
+
+    ret = mbedtls_cipher_cmac_starts(&aes_cmac_ctx, key, APPKEY_KEY_LENGTH);
+    if (0 != ret) {
+        goto exit;
+    }
+
+    ret = mbedtls_cipher_cmac_update(&aes_cmac_ctx, buffer, size & 0xFF);
+    if (0 != ret) {
+        goto exit;
+    }
+
+    ret = mbedtls_cipher_cmac_finish(&aes_cmac_ctx, computed_mic);
+    if (0 != ret) {
+        goto exit;
+    }
+
+    *mic = (uint32_t)((uint32_t) computed_mic[3] << 24 |
+                     (uint32_t) computed_mic[2] << 16 |
+                     (uint32_t) computed_mic[1] << 8 |
+                     (uint32_t) computed_mic[0]);
+
 exit:
-    mbedtls_cipher_free(aes_cmac_ctx);
+    if (cipher_info) {
+        mbedtls_cipher_free(&aes_cmac_ctx);
+    }
+
     return ret;
 }
 
@@ -322,6 +348,10 @@ int LoRaMacCrypto::decrypt_join_frame(const uint8_t *buffer, uint16_t size,
     } else {
         key = _keys.js_enckey;
     }
+
+#if defined(MBEDTLS_AES_ALT)
+    aes_ctx.kdf = false;
+#endif
 
     ret = mbedtls_aes_setkey_enc(&aes_ctx, key, APPKEY_KEY_LENGTH);
     if (0 != ret) {
@@ -354,10 +384,20 @@ void LoRaMacCrypto::unset_js_keys()
 int LoRaMacCrypto::compute_skeys_for_join_frame(const uint8_t *args, uint8_t args_size,
                                                 server_type_t stype)
 {
+
+
     uint8_t nonce[16];
     int ret = 0;
 
     mbedtls_aes_init(&aes_ctx);
+
+#if defined(MBEDTLS_AES_ALT)
+    aes_ctx.kdf = true;
+    memcpy(_keys.app_skey, MBED_CONF_LORA_APPSKEY, strlen(MBED_CONF_LORA_APPSKEY));
+    memcpy(_keys.nwk_skey, MBED_CONF_LORA_NWKSKEY, strlen(MBED_CONF_LORA_NWKSKEY));
+    memcpy(_keys.snwk_sintkey, MBED_CONF_LORA_SNWKSINTKEY, strlen(MBED_CONF_LORA_SNWKSINTKEY));
+    memcpy(_keys.nwk_senckey, MBED_CONF_LORA_NWKSENCKEY, strlen(MBED_CONF_LORA_NWKSENCKEY));
+#endif
 
     ret = mbedtls_aes_setkey_enc(&aes_ctx, _keys.app_key, APPKEY_KEY_LENGTH);
     if (0 != ret) {
@@ -375,6 +415,10 @@ int LoRaMacCrypto::compute_skeys_for_join_frame(const uint8_t *args, uint8_t arg
     mbedtls_aes_free(&aes_ctx);
     mbedtls_aes_init(&aes_ctx);
 
+#if defined(MBEDTLS_AES_ALT)
+    aes_ctx.kdf = true;
+#endif
+
     ret = mbedtls_aes_setkey_enc(&aes_ctx, _keys.nwk_key, APPKEY_KEY_LENGTH);
     if (0 != ret) {
         goto exit;
@@ -389,8 +433,13 @@ int LoRaMacCrypto::compute_skeys_for_join_frame(const uint8_t *args, uint8_t arg
     }
 
     if (stype == LW1_0_2) {
+#if !defined(MBEDTLS_AES_ALT)
         memcpy(_keys.nwk_senckey, _keys.nwk_skey, APPKEY_KEY_LENGTH / 8);
         memcpy(_keys.snwk_sintkey, _keys.nwk_skey, APPKEY_KEY_LENGTH / 8);
+#else
+        memcpy(_keys.nwk_senckey, _keys.nwk_skey, strlen(MBED_CONF_LORA_NWKSKEY));
+        memcpy(_keys.snwk_sintkey, _keys.nwk_skey, strlen(MBED_CONF_LORA_NWKSKEY));
+#endif
     } else {
         memset(nonce, 0, sizeof(nonce));
         nonce[0] = 0x03;
@@ -416,12 +465,13 @@ exit:
 
 int LoRaMacCrypto::compute_join_server_keys(const uint8_t *eui)
 {
+#if !defined(MBEDTLS_AES_ALT)
     uint8_t nonce[16];
     int ret = 0;
 
-    if (MBED_CONF_LORA_VERSION == LORAWAN_VERSION_1_0_2) {
-        memcpy(_keys.js_intkey, _keys.nwk_key, APPKEY_KEY_LENGTH / 8);
-        memcpy(_keys.js_enckey, _keys.nwk_key, APPKEY_KEY_LENGTH / 8);
+    if( MBED_CONF_LORA_VERSION != LORAWAN_VERSION_1_1 ) {
+        memcpy(_keys.js_intkey, _keys.nwk_key, APPKEY_KEY_LENGTH/8);
+        memcpy(_keys.js_enckey, _keys.nwk_key, APPKEY_KEY_LENGTH/8);
         return ret;
     }
 
@@ -451,8 +501,12 @@ int LoRaMacCrypto::compute_join_server_keys(const uint8_t *eui)
 exit:
     mbedtls_aes_free(&aes_ctx);
     return ret;
+#else
+    memcpy(_keys.js_intkey, MBED_CONF_LORA_JSINTKEY, strlen(MBED_CONF_LORA_JSINTKEY));
+    memcpy(_keys.js_enckey, MBED_CONF_LORA_JSENCKEY, strlen(MBED_CONF_LORA_JSENCKEY));
+    return 0;
+#endif
 }
-
 
 int LoRaMacCrypto::compute_ping_slot_random_offset(uint32_t beacon_time, uint32_t dev_addr, uint16_t *rand)
 {

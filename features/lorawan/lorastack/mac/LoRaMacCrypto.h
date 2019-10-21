@@ -197,7 +197,7 @@ private:
     /**
      * CMAC computation context variable
      */
-    mbedtls_cipher_context_t aes_cmac_ctx[1];
+    mbedtls_cipher_context_t aes_cmac_ctx;
 
     loramac_keys _keys;
 

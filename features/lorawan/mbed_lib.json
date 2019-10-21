@@ -26,15 +26,15 @@
             "value": "{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}"
         },
         "use-secure-element": {
-            "help": "Defines whether device contains a secure element to handle cryptographic operations",
+            "help": "Defines whether device contains a secure element to handle cryptographic operations, unused in MBEDTLS_AES_ALT implementation",
             "value": false
         },
         "application-key": {
-            "help": "AES encryption/decryption cipher application key",
+            "help": "AES encryption/decryption cipher application key. If MBEDTLS_AES_ALT is defined, this will be used as a slot identifier",
             "value": "{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}"
         },
         "network-key": {
-            "help": "AES encryption/decryption cipher network key, in case of LW1.0.x not used",
+            "help": "AES encryption/decryption cipher network key, in case of LW1.0.x not used. If MBEDTLS_AES_ALT is defined, this will be used as a slot identifier",
             "value": "{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}"
         },
         "device-address": {
@@ -42,20 +42,28 @@
             "value": "0x00000000"
         },
         "nwkskey": {
-            "help": "AES encryption/decryption cipher network session key. In case of LW1.1 or greater is used as FNwkSIntKey",
+            "help": "AES encryption/decryption cipher network session key. In case of LW1.1 or greater is used as FNwkSIntKey. If MBEDTLS_AES_ALT is defined, this will be used as a slot identifier",
             "value": "{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}"
         },
         "snwksintkey": {
-            "help": "Serving network session integrity key. For LW1.1 or greater",
+            "help": "Serving network session integrity key. For LW1.1 or greater. If MBEDTLS_AES_ALT is defined, this will be used as a slot identifier",
             "value": "{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}"
         },
         "nwksenckey": {
-            "help": "Network session encryption key. For LW1.1 or greater",
+            "help": "Network session encryption key. For LW1.1 or greater. If MBEDTLS_AES_ALT is defined, this will be used as a slot identifier",
             "value": "{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}"
         },
         "appskey": {
-            "help": "AES encryption/decryption cipher application session key",
+            "help": "AES encryption/decryption cipher application session key. If MBEDTLS_AES_ALT is defined, this will be used as a slot identifier",
             "value": "{0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}"
+        },
+        "jsintkey": {
+            "help": "Join server integrity key slot identifier. Only used if MBEDTLS_AES_ALT is defined.",
+            "value": "\"SLOT_06_0\""
+        },
+        "jsenckey": {
+            "help": "Join server encryption key slot identifier. Only used if MBEDTLS_AES_ALT is defined.",
+            "value": "\"SLOT_07_0\""
         },
         "app-port": {
             "help": "LoRaWAN application port, default: 15",
