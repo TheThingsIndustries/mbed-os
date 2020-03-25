@@ -2551,5 +2551,12 @@ lorawan_status_t LoRaMac::set_session(loramac_protocol_params *params)
 {
     //TODO: check that everything is seriailzable (mulicast linked list is not and this is known)
     memcpy(&_params, params, sizeof(loramac_protocol_params));
+    // TODO: Add proper handling of the keys in the stack, setting the keys here is not ideal and for experimental use only
+    _lora_crypto.set_keys(_params.keys.nwk_key,_params.keys.app_key,
+                                        _params.keys.nwk_skey,
+                                        _params.keys.app_skey,
+                                        _params.keys.nwk_skey,
+                                        _params.keys.app_skey); // For FUOTA on 1.0.2
+
     return LORAWAN_STATUS_OK;
 }

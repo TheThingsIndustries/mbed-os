@@ -1467,6 +1467,11 @@ typedef struct {
      * Number of trials for the Join Request
      */
     uint8_t join_request_trial_counter;
+	
+	/*!
+     * Mac keys
+     */
+    loramac_keys keys;
 
     /*!
      * Device IEEE EUI

@@ -143,6 +143,10 @@ void rtc_count_disable(struct rtc_module *const module)
         /* Wait for synchronization */
     }
 
+	/* Disbale interrupt */
+	rtc_module->MODE0.INTENCLR.reg = RTC_MODE0_INTENCLR_MASK;
+	/* Clear interrupt flag */
+	rtc_module->MODE0.INTFLAG.reg = RTC_MODE0_INTFLAG_MASK;
     /* Disable RTC module. */
     rtc_module->MODE0.CTRLA.reg &= ~RTC_MODE0_CTRLA_ENABLE;
 
@@ -178,9 +182,19 @@ void rtc_count_reset(struct rtc_module *const module)
     }
 
     /* Initiate software reset. */
-    rtc_module->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_SWRST;
+	rtc_module->MODE0.CTRLA.reg |= RTC_MODE0_CTRLA_SWRST; // TODO: Race condition caused by reset with high main clock, see https://github.com/TheThingsIndustries/genericnode/issues/177
 
     while (rtc_count_is_syncing(module)) {
+		#if (CONF_CLOCK_GCLK_0_CLOCK_SOURCE == SYSTEM_CLOCK_SOURCE_DFLL)
+		/**
+		 * Temporary solution for high speed system clock (48 MHz)
+		 * Minimum cycles to avoid race condition 1500, and 1921 is used to delay for 40 us exactly. 
+		 */
+		for (uint32_t cycle_counter = 0; cycle_counter < 1921; cycle_counter++)
+		{
+			asm("nop"); // This delay ensures RTC is properly reset before moving forward, 1 NOP in 48 MHz clock is 20.83 ns
+		}
+		#endif
         /* Wait for synchronization */
     }
 }

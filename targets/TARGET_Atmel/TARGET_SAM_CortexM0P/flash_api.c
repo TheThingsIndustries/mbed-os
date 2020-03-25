@@ -29,7 +29,7 @@ int32_t flash_init(flash_t *obj)
 	const struct nvm_config config = {
 		NVM_SLEEP_POWER_MODE_WAKEUPINSTANT, // sleep_power_mode
 		false, // manual_page_write
-		0, // wait_states
+		1, // wait_states
 		false, // disable_cache
 		NVM_CACHE_READMODE_DETERMINISTIC // nvm_cache
 	};

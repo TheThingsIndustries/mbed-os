@@ -72,6 +72,9 @@ lorawan_status_t LoRaMacCrypto::set_keys(uint8_t *nwk_key, uint8_t *app_key, uin
         memcpy(_keys.nwk_skey, snwk_sintkey,
                sizeof(_keys.nwk_skey));
 
+        memcpy(_keys.snwk_sintkey, snwk_sintkey,
+               sizeof(_keys.snwk_sintkey));
+               
         memcpy(_keys.app_skey, nwk_senckey,
                sizeof(_keys.app_skey));
     }
