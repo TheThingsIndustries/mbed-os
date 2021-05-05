@@ -4301,6 +4301,18 @@
         ],
         "device_name": "STM32WL55JCIx"
     },
+    "GNSE": {
+        "inherits": [
+            "MCU_STM32WL55xC"
+        ],
+        "supported_form_factors": [
+            "ARDUINO_UNO"
+        ],
+        "detect_code": [
+            "0866"
+        ],
+        "device_name": "GNSE"
+    },
     "MIMXRT1050_EVK": {
         "supported_form_factors": [
             "ARDUINO"
