@@ -4391,6 +4391,15 @@
         ],
         "device_name": "STM32WL55JCIx"
     },
+    "GNSE": {
+        "inherits": [
+            "MCU_STM32WL55xC"
+        ],
+        "detect_code": [
+            "0866"
+        ],
+        "device_name": "STM32WL55JCIx"
+    },
     "MCU_STM32WLE5xC": {
         "inherits": [
             "MCU_STM32WL"
